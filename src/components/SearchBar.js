@@ -29,12 +29,15 @@ class SearchBar extends Component {
     });
   };
 
+
+
   render() {
     return (
       <nav className="navbar navbar-dark bg-dark">
         <a href="#" className="text-white ml-5">
           Spotify-app
         </a>
+        <button className="btn btn-danger" onClick={this.props.handleBack}>Back</button>
         <input type="text" name="query" onChange={this.handleChange} />
         <select name="category" onChange={this.handleChange}>
           <option value="artist">Artist</option>

@@ -4,13 +4,12 @@ import CardList from "./components/CardList";
 import Loader from "./components/Loader";
 import "./App.css";
 
-const TOKEN = "MY-TOKEN";
+const TOKEN =
+  "BQDfJiHsesRgxbl7IO7wd3bHhuOX7Fb2fEYsvXoJ4JpeX5sZki2GIMgi46CgAN0OroHtCDy_Hg3GebXHhdFN7S5SLMKtjm1zpZNZNO7eE0dBn5zytmyMJKoDVpmhXOdy1a1zfK4EhsJf2WEZC7fgdOy31rzjAAkTEsxyYsFRubMK0_BvhStC";
 
 class App extends Component {
   state = {
     data: {},
-    query: "",
-    category: "",
     isDataLoaded: null
   };
 
@@ -25,6 +24,14 @@ class App extends Component {
         data: {}
       });
     }
+  };
+
+
+  // BACK BUTTON WORK IN PROGRESS //
+  handleBack = () => {
+    this.setState(prevState => {
+      return { data: prevState.data };
+    });
   };
 
   callAPI = (query, category) => {
@@ -54,6 +61,33 @@ class App extends Component {
         );
     }
   };
+  updateCards = (data, token) => {
+    let detail = "";
+    if (data.type === "artist") {
+      detail = "albums";
+    } else if (data.type === "album") {
+      detail = "tracks";
+    }
+    fetch(`https://api.spotify.com/v1/${data.type}s/${data.id}/${detail}`, {
+      method: "get",
+      headers: new Headers({
+        Authorization: "Bearer " + token,
+        Accept: "application/json"
+      })
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(
+        function(myJson) {
+          //error
+          let items = myJson.items;
+          this.setState({
+            data: items
+          });
+        }.bind(this)
+      );
+  };
 
   // renderData = () => {
   //   const { data } = this.state;
@@ -72,11 +106,16 @@ class App extends Component {
           callAPI={this.callAPI}
           isDataLoaded={this.state.isDataLoaded}
           isTyping={this.isTyping}
+          handleBack={this.handleBack}
         />{" "}
         <div className="row">
           {" "}
           {this.state.isDataLoaded === false && <Loader />}{" "}
-          <CardList data={this.state.data} />{" "}
+          <CardList
+            data={this.state.data}
+            token={TOKEN}
+            updateCards={this.updateCards}
+          />{" "}
         </div>{" "}
       </div>
     );

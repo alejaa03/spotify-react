@@ -4,6 +4,9 @@ class Card extends Component {
   // constructor(props) {
   //   super(props);
   // }
+  state = {
+    info:""
+  }
 
   renderHelper = () => {
     if (this.props.data.type === "track") {
@@ -17,6 +20,7 @@ class Card extends Component {
           allow="encrypted-media"
         />
       );
+      // else if (this.props)
     } else {
       return (
         <img
@@ -32,16 +36,20 @@ class Card extends Component {
     }
   };
 
+handleClickCard = () => {
+  const {data,token} = this.props
+  this.props.updateCards(data,token)
+}
+
+
+
   render() {
     return (
       <div className="col-md-3 text-center">
-        <div className="card mt-4">
+        <div className="card mt-4" onClick={this.handleClickCard}>
           {this.renderHelper()}
           <div className="card-body">
             <p>{this.props.data.name}</p>
-          </div>
-          <div className="card-footer">
-            <h4>{this.props.popularity}</h4>
           </div>
         </div>
       </div>
