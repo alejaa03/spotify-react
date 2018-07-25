@@ -2,15 +2,24 @@ import React, { Component } from "react";
 import SearchBar from "./components/SearchBar";
 import CardList from "./components/CardList";
 import Loader from "./components/Loader";
+import Login from "./components/Login";
+import ErrorPanel from "./components/ErrorPanel";
+import Settings from "./components/Settings";
+import swal from 'sweetalert';
+import logic from "./logic";
 import "./App.css";
 
 const TOKEN =
-  "BQDfJiHsesRgxbl7IO7wd3bHhuOX7Fb2fEYsvXoJ4JpeX5sZki2GIMgi46CgAN0OroHtCDy_Hg3GebXHhdFN7S5SLMKtjm1zpZNZNO7eE0dBn5zytmyMJKoDVpmhXOdy1a1zfK4EhsJf2WEZC7fgdOy31rzjAAkTEsxyYsFRubMK0_BvhStC";
+  "BQCWpUWFuRSAxczaOI6cfD2XE-Q5hYgn-E9_x6DD9A1xkph_MlDJ6A0HQPtqnWIOHjSftYg16-ENLnaBbuO9Ue8H8vNWQYHLY6OlKk1wX3QKTOCe1k0O5FrDidcEp4mUF_6hDEAGTXKucc8v6iHWXw5suNohyWPIGkM1pG7aknc1Ptrjt7gv";
 
 class App extends Component {
   state = {
     data: {},
-    isDataLoaded: null
+    isDataLoaded: null,
+    isLogged: logic.loggedIn,
+    enableRegister: false,
+    err: null,
+    toggleSettings: false
   };
 
   isTyping = query => {
@@ -26,12 +35,21 @@ class App extends Component {
     }
   };
 
-
   // BACK BUTTON WORK IN PROGRESS //
-  handleBack = () => {
-    this.setState(prevState => {
-      return { data: prevState.data };
+  handleBack = e => {
+    e.preventDefault();
+    this.setState({
+      data: {}
     });
+  };
+
+  handleLogOut = e => {
+    e.preventDefault();
+    this.setState({
+      isLogged: false,
+      data: {}
+    });
+    logic.logout();
   };
 
   callAPI = (query, category) => {
@@ -89,6 +107,81 @@ class App extends Component {
       );
   };
 
+  toggleRegister = () => {
+    this.setState({
+      err: null,
+      enableRegister: true
+    });
+  };
+
+  toggleSettings = e => {
+    e.preventDefault();
+    if (this.state.toggleSettings) {
+      this.setState({
+        toggleSettings: false
+      });
+    } else {
+      this.setState({
+        toggleSettings: true
+      });
+    }
+  };
+
+  applySettings = (password, newUsername, newPassword) => {
+    logic.updateUser(password, newUsername, newPassword).then(res => {
+      swal("Update OK","You updated your credentials", "success")
+      .then(this.setState({
+        toggleSettings:false
+      }))
+
+    })
+    .catch(err => {
+      swal("Error",err.message,"error")
+    })
+  };
+
+  disableRegister = () => {
+    this.setState({
+      enableRegister: false,
+      err: null
+    });
+  };
+
+  registerUser = (user, pass) => {
+    logic
+      .registerUser(user, pass)
+      .then(res => {
+        if (res) {
+          this.setState({
+            enableRegister: false
+          });
+        }
+      })
+      .catch(err => {
+        this.setState({
+          err: err.message
+        });
+      });
+  };
+
+  logUser = (user, pass) => {
+    logic
+      .loginUser(user, pass)
+      .then(res => {
+        if (res) {
+          this.setState({
+            isLogged: true,
+            err: null
+          });
+        }
+      })
+      .catch(err => {
+        this.setState({
+          err: err.message
+        });
+      });
+  };
+
   // renderData = () => {
   //   const { data } = this.state;
   //   if (Object.keys(data).length) {
@@ -100,25 +193,53 @@ class App extends Component {
   // };
 
   render() {
-    return (
-      <div className="App">
-        <SearchBar
-          callAPI={this.callAPI}
-          isDataLoaded={this.state.isDataLoaded}
-          isTyping={this.isTyping}
-          handleBack={this.handleBack}
-        />{" "}
-        <div className="row">
-          {" "}
-          {this.state.isDataLoaded === false && <Loader />}{" "}
-          <CardList
-            data={this.state.data}
-            token={TOKEN}
-            updateCards={this.updateCards}
+    if (this.state.isLogged && this.state.toggleSettings) {
+      return (
+        <Settings
+          toggleSettings={this.toggleSettings}
+          updateUsers={this.applySettings}
+        />
+      );
+    }
+    if (this.state.isLogged) {
+      return (
+        <div>
+          <SearchBar
+            callAPI={this.callAPI}
+            isDataLoaded={this.state.isDataLoaded}
+            isTyping={this.isTyping}
+            handleBack={this.handleBack}
+            handleLogOut={this.handleLogOut}
+            toggleSettings={this.toggleSettings}
           />{" "}
-        </div>{" "}
-      </div>
-    );
+          <div className="row">
+            {" "}
+            {this.state.isDataLoaded === false && <Loader />}{" "}
+            <CardList
+              data={this.state.data}
+              token={TOKEN}
+              updateCards={this.updateCards}
+            />{" "}
+          </div>{" "}
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <Login
+            setRegister={this.registerUser}
+            enableRegister={this.state.enableRegister}
+            toggleRegister={this.toggleRegister}
+            setLogin={this.logUser}
+            isLogged={this.state.isLogged}
+            disableRegister={this.disableRegister}
+          />
+          {this.state.err !== null && (
+            <ErrorPanel errMessage={this.state.err} />
+          )}
+        </div>
+      );
+    }
   }
 }
 

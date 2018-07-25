@@ -25,7 +25,7 @@ class SearchBar extends Component {
       [name]: value,
       typingTimeout: setTimeout(() => {
           this.props.callAPI(this.state.query,this.state.category);
-      }, 2000)
+      }, 500)
     });
   };
 
@@ -34,16 +34,18 @@ class SearchBar extends Component {
   render() {
     return (
       <nav className="navbar navbar-dark bg-dark">
-        <a href="#" className="text-white ml-5">
+        <a href="#" className="text-white ml-5 navbar-brand">
           Spotify-app
         </a>
-        <button className="btn btn-danger" onClick={this.props.handleBack}>Back</button>
         <input type="text" name="query" onChange={this.handleChange} />
         <select name="category" onChange={this.handleChange}>
           <option value="artist">Artist</option>
           <option value="track">Song</option>
           <option value="album">Album</option>
         </select>
+        <a href="/" className="btn btn-danger" onClick={this.props.handleBack}>Home</a>
+        <a href="/" className="btn btn-light" onClick={this.props.toggleSettings}>Settings</a>
+        <a href="/" className="btn btn-warning" onClick={this.props.handleLogOut}>Log out</a>
       </nav>
     );
   }
